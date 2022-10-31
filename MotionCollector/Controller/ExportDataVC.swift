@@ -211,7 +211,7 @@ class ExportDataVC: UIViewController, UITableViewDelegate, UITableViewDataSource
         
         let fileName = "Motion-sessions_\(sessionDate).csv"
         let path = NSURL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(fileName)
-        var csvText = "SessionID,SessionDate,SessionDuration,SessionFrequency,RecordID,Timestamp,timeIntervalSince1970,GyroX,GyroY,GyroZ,AccX,AccY,AccZ,MagX,MagY,MagZ,WatchTimestamp,WatchtImeIntervalSince1970,WatchGyroX,WatchGyroY,WatchGyroZ,WatchAccX,WatchAccY,WatchAccZ\n"
+        var csvText = "SessionID,SessionDate,SessionDuration,SessionFrequency,RecordID,Timestamp,timeIntervalSince1970,GyroX,GyroY,GyroZ,AccX,AccY,AccZ,MagX,MagY,MagZ,WatchTimestamp,WatchtImeIntervalSince1970,WatchGyroX,WatchGyroY,WatchGyroZ,WatchAccX,WatchAccY,WatchAccZ,WatchAccGravX,WatchAccGravY,WatchAccGravZ,WatchLocX,WatchLocY,WatchLocXAcc,WatchLocYAcc,WatchAltitude,WatchSpeed,WatchSpeedAcc,WatchCourse,WatchCourseAcc,WatchLocTimeDiff\n"
         
         let df = DateFormatter()
         df.dateFormat = "yyyy-MM-dd HH:mm:ss.SSSS"
@@ -266,7 +266,7 @@ class ExportDataVC: UIViewController, UITableViewDelegate, UITableViewDataSource
                     }
                     
                     if i < SensorOutputs2.count {
-                        sensorsInfo2 = "\(df.string(from: (SensorOutputs2[i].timeStamp as Date?)!)),\(String(describing: SensorOutputs2[i].timeStamp!.timeIntervalSince1970)),\(String(describing: SensorOutputs2[i].gyroX!)),\(String(describing: SensorOutputs2[i].gyroY!)),\(String(describing: SensorOutputs2[i].gyroZ!)),\(String(describing: SensorOutputs2[i].accX!)),\(String(describing: SensorOutputs2[i].accY!)),\(String(describing: SensorOutputs2[i].accZ!)),"
+                        sensorsInfo2 = "\(df.string(from: (SensorOutputs2[i].timeStamp as Date?)!)),\(String(describing: SensorOutputs2[i].timeStamp!.timeIntervalSince1970)),\(String(describing: SensorOutputs2[i].gyroX!)),\(String(describing: SensorOutputs2[i].gyroY!)),\(String(describing: SensorOutputs2[i].gyroZ!)),\(String(describing: SensorOutputs2[i].accX!)),\(String(describing: SensorOutputs2[i].accY!)),\(String(describing: SensorOutputs2[i].accZ!)),\(String(describing: SensorOutputs2[i].accGravX!)),\(String(describing: SensorOutputs2[i].accGravY!)),\(String(describing: SensorOutputs2[i].accGravZ!)),\(String(describing: SensorOutputs2[i].locX!)),\(String(describing: SensorOutputs2[i].locY!)),\(String(describing: SensorOutputs2[i].locXAcc!)),\(String(describing: SensorOutputs2[i].locYAcc!)),\(String(describing: SensorOutputs2[i].altitude!)),\(String(describing: SensorOutputs2[i].speed!)),\(String(describing: SensorOutputs2[i].speedAcc!)),\(String(describing: SensorOutputs2[i].course!)),\(String(describing: SensorOutputs2[i].courseAcc!)),\(String(describing: SensorOutputs2[i].locTimeDiff!))"
                     }
                     
                     
@@ -274,7 +274,7 @@ class ExportDataVC: UIViewController, UITableViewDelegate, UITableViewDataSource
                         sensorsInfo1 = ",,,,,,,,,,,"
                     }
                     if sensorsInfo2 == "" {
-                        sensorsInfo2 = ",,,,,,,,,"
+                        sensorsInfo2 = ",,,,,,,,,,,,,,,,,,,,,"
                     }
                     
                     
@@ -336,8 +336,27 @@ class ExportDataVC: UIViewController, UITableViewDelegate, UITableViewDataSource
                 sensorOutput.magX = characteristic.x
                 sensorOutput.magY = characteristic.y
                 sensorOutput.magZ = characteristic.z
-            }
-            
+            } else if characteristic.toCharacteristicName?.name == "AccGrav" {
+                sensorOutput.accGravX = characteristic.x
+                sensorOutput.accGravY = characteristic.y
+                sensorOutput.accGravZ = characteristic.z
+            } else if characteristic.toCharacteristicName?.name == "Loc" {
+                sensorOutput.locX = characteristic.x
+                sensorOutput.locY = characteristic.y
+            } else if characteristic.toCharacteristicName?.name == "LocAcc" {
+                sensorOutput.locXAcc = characteristic.x
+                sensorOutput.locYAcc = characteristic.y
+            } else if characteristic.toCharacteristicName?.name == "Altitude" {
+                sensorOutput.altitude = characteristic.x
+            } else if characteristic.toCharacteristicName?.name == "Speed" {
+               sensorOutput.speed = characteristic.x
+               sensorOutput.speedAcc = characteristic.y
+            } else if characteristic.toCharacteristicName?.name == "Course" {
+               sensorOutput.course = characteristic.x
+               sensorOutput.courseAcc = characteristic.y
+           } else if characteristic.toCharacteristicName?.name == "LocTimeDiff" {
+               sensorOutput.locTimeDiff = characteristic.x
+           }
         }
         
         return sensorOutput

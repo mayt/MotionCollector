@@ -10,9 +10,10 @@ import UIKit
 import CoreMotion
 import CoreData
 import WatchConnectivity
+import CoreLocation
 
 
-class CollectingDataVC: UIViewController, WCSessionDelegate, SettingsTableVCDelegate, RecordIDVCDelegate {
+class CollectingDataVC: UIViewController, WCSessionDelegate, SettingsTableVCDelegate, RecordIDVCDelegate, CLLocationManagerDelegate {
     
     
     // Statuses
@@ -77,6 +78,8 @@ class CollectingDataVC: UIViewController, WCSessionDelegate, SettingsTableVCDele
     let motion = CMMotionManager()
     var motionUpdateTimer = Timer()
     
+    var locationManager: CLLocationManager?
+    
     
     // MARK - Starting app
     
@@ -92,6 +95,13 @@ class CollectingDataVC: UIViewController, WCSessionDelegate, SettingsTableVCDele
             session.delegate = self
             session.activate()
         }
+        
+        // Step 3: initalise and configure CLLocationManager
+        locationManager = CLLocationManager()
+        locationManager?.delegate = self
+        
+        // Step 4: request authorization
+        locationManager?.requestWhenInUseAuthorization()
         
     }
     
@@ -252,25 +262,46 @@ class CollectingDataVC: UIViewController, WCSessionDelegate, SettingsTableVCDele
         UIUpdateTimer.invalidate()
         currentSession?.duration = recordTime
         
+        let characteristicName0 = CharacteristicName (context:context)
+        characteristicName0.name = "Acc"
+        let characteristicName1 = CharacteristicName (context:context)
+        characteristicName1.name = "AccGrav"
+        let characteristicName2 = CharacteristicName (context:context)
+        characteristicName2.name = "Altitude"
+        let characteristicName3 = CharacteristicName (context:context)
+        characteristicName3.name = "Course"
+        let characteristicName4 = CharacteristicName (context:context)
+        characteristicName4.name = "Gyro"
+        let characteristicName5 = CharacteristicName (context:context)
+        characteristicName5.name = "Loc"
+        let characteristicName6 = CharacteristicName (context:context)
+        characteristicName6.name = "LocAcc"
+        let characteristicName7 = CharacteristicName (context:context)
+        characteristicName7.name = "LocTimeDiff"
+        let characteristicName8 = CharacteristicName (context:context)
+        characteristicName8.name = "Mag"
+        let characteristicName9 = CharacteristicName (context:context)
+        characteristicName9.name = "Speed"
+        
         for sensorOutput in sensorOutputs {
             
             let characteristicGyro = Characteristic (context:context)
             characteristicGyro.x = sensorOutput.gyroX!
             characteristicGyro.y = sensorOutput.gyroY!
             characteristicGyro.z = sensorOutput.gyroZ!
-            characteristicGyro.toCharacteristicName = self.characteristicsNames[1]
+            characteristicGyro.toCharacteristicName = characteristicName4
             
             let characteristicAcc = Characteristic (context:context)
             characteristicAcc.x = sensorOutput.accX!
             characteristicAcc.y = sensorOutput.accY!
             characteristicAcc.z = sensorOutput.accZ!
-            characteristicAcc.toCharacteristicName = self.characteristicsNames[0]
+            characteristicAcc.toCharacteristicName = characteristicName0
             
             let characteristicMag = Characteristic (context:context)
             characteristicMag.x = sensorOutput.magX!
             characteristicMag.y = sensorOutput.magY!
             characteristicMag.z = sensorOutput.magZ!
-            characteristicMag.toCharacteristicName = self.characteristicsNames[2]
+            characteristicMag.toCharacteristicName = characteristicName8
             
             
             let sensorData = SensorData(context: context)
@@ -505,13 +536,29 @@ class CollectingDataVC: UIViewController, WCSessionDelegate, SettingsTableVCDele
         do {
             let records = try context.fetch(fetchRequest) as! [CharacteristicName]
             
-            if records.count != 3 {
+            if records.count != 9 {
+                let characteristicName0 = CharacteristicName (context:context)
+                characteristicName0.name = "Acc"
                 let characteristicName1 = CharacteristicName (context:context)
-                characteristicName1.name = "Gyro"
+                characteristicName1.name = "AccGrav"
                 let characteristicName2 = CharacteristicName (context:context)
-                characteristicName2.name = "Acc"
+                characteristicName2.name = "Altitude"
                 let characteristicName3 = CharacteristicName (context:context)
-                characteristicName3.name = "Mag"
+                characteristicName3.name = "Course"
+                let characteristicName4 = CharacteristicName (context:context)
+                characteristicName4.name = "Gyro"
+                let characteristicName5 = CharacteristicName (context:context)
+                characteristicName5.name = "Loc"
+                let characteristicName6 = CharacteristicName (context:context)
+                characteristicName6.name = "LocAcc"
+                let characteristicName7 = CharacteristicName (context:context)
+                characteristicName7.name = "LocTimeDiff"
+                let characteristicName8 = CharacteristicName (context:context)
+                characteristicName8.name = "Mag"
+                let characteristicName9 = CharacteristicName (context:context)
+                characteristicName9.name = "Speed"
+
+
                 ad.saveContext()
             }
             
@@ -602,6 +649,27 @@ class CollectingDataVC: UIViewController, WCSessionDelegate, SettingsTableVCDele
                 if let sessionContainerCopy = try unarchiver.decodeTopLevelDecodable(SessionContainer.self, forKey: NSKeyedArchiveRootObjectKey) {
                     // print("deserialized sensor output: \(String(describing: sessionContainerCopy.currentFrequency))")
                     
+                    let characteristicName0 = CharacteristicName (context:context)
+                    characteristicName0.name = "Acc"
+                    let characteristicName1 = CharacteristicName (context:context)
+                    characteristicName1.name = "AccGrav"
+                    let characteristicName2 = CharacteristicName (context:context)
+                    characteristicName2.name = "Altitude"
+                    let characteristicName3 = CharacteristicName (context:context)
+                    characteristicName3.name = "Course"
+                    let characteristicName4 = CharacteristicName (context:context)
+                    characteristicName4.name = "Gyro"
+                    let characteristicName5 = CharacteristicName (context:context)
+                    characteristicName5.name = "Loc"
+                    let characteristicName6 = CharacteristicName (context:context)
+                    characteristicName6.name = "LocAcc"
+                    let characteristicName7 = CharacteristicName (context:context)
+                    characteristicName7.name = "LocTimeDiff"
+                    let characteristicName8 = CharacteristicName (context:context)
+                    characteristicName8.name = "Mag"
+                    let characteristicName9 = CharacteristicName (context:context)
+                    characteristicName9.name = "Speed"
+                    
                     
                     DispatchQueue.main.async {
                         print("We are in main thread")
@@ -624,20 +692,71 @@ class CollectingDataVC: UIViewController, WCSessionDelegate, SettingsTableVCDele
                                 characteristicGyro.x = sensorOutput.gyroX!
                                 characteristicGyro.y = sensorOutput.gyroY!
                                 characteristicGyro.z = sensorOutput.gyroZ!
-                                characteristicGyro.toCharacteristicName = self.characteristicsNames[1]
+                                characteristicGyro.toCharacteristicName = characteristicName4
                                 
                                 let characteristicAcc = Characteristic (context:context)
                                 characteristicAcc.x = sensorOutput.accX!
                                 characteristicAcc.y = sensorOutput.accY!
                                 characteristicAcc.z = sensorOutput.accZ!
-                                characteristicAcc.toCharacteristicName = self.characteristicsNames[0]
+                                characteristicAcc.toCharacteristicName = characteristicName0
                                 
+                                let characteristicAccGrav = Characteristic (context:context)
+                                characteristicAccGrav.x = sensorOutput.accGravX!
+                                characteristicAccGrav.y = sensorOutput.accGravY!
+                                characteristicAccGrav.z = sensorOutput.accGravZ!
+                                characteristicAccGrav.toCharacteristicName = characteristicName1
+                                
+                                let characteristicLoc = Characteristic (context:context)
+                                characteristicLoc.x = sensorOutput.locX!
+                                characteristicLoc.y = sensorOutput.locY!
+                                characteristicLoc.z = 0
+                                characteristicLoc.toCharacteristicName = characteristicName5
+                                
+                                let characteristicLocAcc = Characteristic (context:context)
+                                characteristicLocAcc.x = sensorOutput.locXAcc!
+                                characteristicLocAcc.y = sensorOutput.locYAcc!
+                                characteristicLocAcc.z = 0
+                                characteristicLocAcc.toCharacteristicName = characteristicName6
+                                
+                                
+                                let characteristicAltitude = Characteristic (context:context)
+                                characteristicAltitude.x = sensorOutput.altitude!
+                                characteristicAltitude.y = 0
+                                characteristicAltitude.z = 0
+                                characteristicAltitude.toCharacteristicName = characteristicName2
+                                
+                                
+                                let characteristicSpeed = Characteristic (context:context)
+                                characteristicSpeed.x = sensorOutput.speed!
+                                characteristicSpeed.y = sensorOutput.speedAcc!
+                                characteristicSpeed.z = 0
+                                characteristicSpeed.toCharacteristicName = characteristicName9
+                                
+                                
+                                let characteristicCourse = Characteristic (context:context)
+                                characteristicCourse.x = sensorOutput.course!
+                                characteristicCourse.y = sensorOutput.courseAcc!
+                                characteristicCourse.z = 0
+                                characteristicCourse.toCharacteristicName = characteristicName3
+                                
+                                let characteristicLocTimeDiff = Characteristic (context:context)
+                                characteristicLocTimeDiff.x = sensorOutput.locTimeDiff!
+                                characteristicLocTimeDiff.y = 0
+                                characteristicLocTimeDiff.z = 0
+                                characteristicLocTimeDiff.toCharacteristicName = characteristicName7
                                 
                                 let sensorData = SensorData(context: context)
                                 sensorData.timeStamp = sensorOutput.timeStamp as NSDate?
                                 sensorData.toSensor = self.sensors[1]
                                 sensorData.addToToCharacteristic(characteristicGyro)
                                 sensorData.addToToCharacteristic(characteristicAcc)
+                                sensorData.addToToCharacteristic(characteristicAccGrav)
+                                sensorData.addToToCharacteristic(characteristicLoc)
+                                sensorData.addToToCharacteristic(characteristicLocAcc)
+                                sensorData.addToToCharacteristic(characteristicAltitude)
+                                sensorData.addToToCharacteristic(characteristicSpeed)
+                                sensorData.addToToCharacteristic(characteristicCourse)
+                                sensorData.addToToCharacteristic(characteristicLocTimeDiff)
                                 
                                 self.currentSession?.addToToSensorData(sensorData)
                             }

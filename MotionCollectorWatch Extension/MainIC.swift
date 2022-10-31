@@ -13,8 +13,12 @@ import HealthKit
 import WatchConnectivity
 
 
-class MainIC: WKInterfaceController, WCSessionDelegate {
+class MainIC: WKInterfaceController, WCSessionDelegate, CLLocationManagerDelegate {
     
+    var locationManager: CLLocationManager?
+    var currentLocation: CLLocation?
+    var canRequestLocation: Bool = false
+
     // Statuses
     enum Status {
         case waiting
@@ -80,6 +84,15 @@ class MainIC: WKInterfaceController, WCSessionDelegate {
         }
         recNumberPicker.setItems(items)
         
+        // Step 3: initalise and configure CLLocationManager
+        locationManager = CLLocationManager()
+        locationManager?.delegate = self
+        
+        // Step 4: request authorization
+        locationManager?.requestAlwaysAuthorization()
+        locationManager?.allowsBackgroundLocationUpdates = true
+        locationManager?.requestWhenInUseAuthorization()
+        locationManager?.activityType = .fitness
         
         // needs to be implemented
         // findLastSessionId()
@@ -97,7 +110,9 @@ class MainIC: WKInterfaceController, WCSessionDelegate {
             session.delegate = self
             session.activate()
         }
+
     }
+
     
     override func willActivate() {
         // This method is called when watch view controller is about to be visible to user
@@ -109,6 +124,69 @@ class MainIC: WKInterfaceController, WCSessionDelegate {
         super.didDeactivate()
     }
     
+    func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
+        switch status {
+        case .denied: // Setting option: Never
+          print("LocationManager didChangeAuthorization denied")
+        case .notDetermined: // Setting option: Ask Next Time
+          print("LocationManager didChangeAuthorization notDetermined")
+
+        case .authorizedWhenInUse: // Setting option: While Using the App
+          print("LocationManager didChangeAuthorization authorizedWhenInUse")
+          
+          // Stpe 6: Request a one-time location information
+          //locationManager?.startUpdatingLocation()
+            canRequestLocation = true
+        case .authorizedAlways: // Setting option: Always
+          print("LocationManager didChangeAuthorization authorizedAlways")
+            canRequestLocation = true
+          // Stpe 6: Request a one-time location information
+          //locationManager?.requestLocation()
+        case .restricted: // Restricted by parental control
+          print("LocationManager didChangeAuthorization restricted")
+        default:
+          print("LocationManager didChangeAuthorization")
+        }
+      }
+
+      // Step 7: Handle the location information
+      func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        /*print("LocationManager didUpdateLocations: numberOfLocation: \(locations.count)")
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+        
+        locations.forEach { (location) in
+          print("LocationManager didUpdateLocations: \(dateFormatter.string(from: location.timestamp)); \(location.coordinate.latitude), \(location.coordinate.longitude)")
+          print("LocationManager altitude: \(location.altitude)")
+          print("LocationManager floor?.level: \(location.floor?.level)")
+          print("LocationManager horizontalAccuracy: \(location.horizontalAccuracy)")
+          print("LocationManager verticalAccuracy: \(location.verticalAccuracy)")
+          print("LocationManager speedAccuracy: \(location.speedAccuracy)")
+          print("LocationManager speed: \(location.speed)")
+          print("LocationManager timestamp: \(location.timestamp)")
+            if #available(watchOSApplicationExtension 6.2, *) {
+                print("LocationManager courseAccuracy: \(location.courseAccuracy)")
+            } else {
+                // Fallback on earlier versions
+            } // 13.4
+          print("LocationManager course: \(location.course)")
+            print("LocationManager accuracy level: \(manager.accuracyAuthorization)")
+        }
+         */
+          locations.forEach { (location) in
+              self.currentLocation = location
+          }
+      }
+      
+      func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        print("LocationManager didFailWithError \(error.localizedDescription)")
+        if let error = error as? CLError, error.code == .denied {
+           // Location updates are not authorized.
+          // To prevent forever looping of `didFailWithError` callback
+
+           return
+        }
+      }
     
     
     // MARK - Control work of getting motion Data
@@ -132,6 +210,10 @@ class MainIC: WKInterfaceController, WCSessionDelegate {
         // If we have already started the workout, then do nothing.
         if (session != nil) {
             return
+        }
+        
+        if (canRequestLocation) {
+            locationManager?.startUpdatingLocation()
         }
         
         // Configure the workout session.
@@ -167,9 +249,9 @@ class MainIC: WKInterfaceController, WCSessionDelegate {
                 let GyroY = deviceMotion!.rotationRate.y
                 let GyroZ = deviceMotion!.rotationRate.z
                 
-                let AccX = deviceMotion!.gravity.x + deviceMotion!.userAcceleration.x;
-                let AccY = deviceMotion!.gravity.y + deviceMotion!.userAcceleration.y;
-                let AccZ = deviceMotion!.gravity.z + deviceMotion!.userAcceleration.z;
+                let AccX = deviceMotion!.userAcceleration.x;
+                let AccY = deviceMotion!.userAcceleration.y;
+                let AccZ = deviceMotion!.userAcceleration.z;
                 
                 // print ( "Gyro: \(currenTime) \(GyroX), \(GyroY), \(GyroZ)")
                 // print ( "Acc : \(currenTime) \(AccX), \(AccY), \(AccZ)")
@@ -184,6 +266,20 @@ class MainIC: WKInterfaceController, WCSessionDelegate {
                 sensorOutput.accX = AccX
                 sensorOutput.accY = AccY
                 sensorOutput.accZ = AccZ
+                sensorOutput.accGravX = deviceMotion!.gravity.x
+                sensorOutput.accGravY = deviceMotion!.gravity.y
+                sensorOutput.accGravZ = deviceMotion!.gravity.z
+                
+                sensorOutput.altitude = self.currentLocation?.altitude ?? -1
+                sensorOutput.locX = self.currentLocation?.coordinate.longitude ?? -1
+                sensorOutput.locY = self.currentLocation?.coordinate.latitude ?? -1
+                sensorOutput.locXAcc = self.currentLocation?.horizontalAccuracy ?? -1
+                sensorOutput.locYAcc = self.currentLocation?.verticalAccuracy ?? -1
+                sensorOutput.speed = self.currentLocation?.speed ?? -1
+                sensorOutput.speedAcc = self.currentLocation?.speedAccuracy ?? -1
+                sensorOutput.locTimeDiff = sensorOutput.timeStamp!.timeIntervalSince1970 - (self.currentLocation?.timestamp.timeIntervalSince1970 ?? 0)
+                sensorOutput.course = self.currentLocation?.course ?? -1
+                sensorOutput.courseAcc = self.currentLocation?.courseAccuracy ?? -1
                 
                 self.sensorOutputs.append(sensorOutput)
                 
@@ -201,20 +297,23 @@ class MainIC: WKInterfaceController, WCSessionDelegate {
         // Stop the device motion updates and workout session.
         motion.stopDeviceMotionUpdates()
         healthStore.end(session!)
+        
+        if (canRequestLocation) {
+            locationManager?.stopUpdatingLocation()
+        }
+
         print("Ended health session")
         
         // send info to start data collecting on phone
-        if (isRecordDataFromPhone) {
-            let WCsession = WCSession.default
-            if WCsession.isReachable {
-                let data = ["Running": false]
-                
-                WCsession.sendMessage(data, replyHandler: { (response) in
-                    DispatchQueue.main.async {
-                        print ("received response: \(response)")
-                    }
-                }, errorHandler: nil)
-            }
+        let WCsession = WCSession.default
+        if WCsession.isReachable {
+            let data = ["Running": false]
+            
+            WCsession.sendMessage(data, replyHandler: { (response) in
+                DispatchQueue.main.async {
+                    print ("received response: \(response)")
+                }
+            }, errorHandler: nil)
         }
         
         // Clear the workout session.

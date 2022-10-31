@@ -1,12 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder.WatchKit.Storyboard" version="3.0" toolsVersion="14109" targetRuntime="watchKit" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="AgC-eL-Hgc">
-    <device id="watch42" orientation="portrait">
-        <adaptation id="fullscreen"/>
-    </device>
+<document type="com.apple.InterfaceBuilder.WatchKit.Storyboard" version="3.0" toolsVersion="21225" targetRuntime="watchKit" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="AgC-eL-Hgc">
+    <device id="watch42"/>
     <dependencies>
         <deployment identifier="watchOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="14088"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBWatchKitPlugin" version="14031"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBWatchKitPlugin" version="21040"/>
     </dependencies>
     <scenes>
         <!--DataCollector-->
@@ -34,7 +31,7 @@
                                 </picker>
                             </items>
                         </group>
-                        <group width="1" height="0.29999999999999999" alignment="left" id="2YU-4i-TBW">
+                        <group width="1" height="63" alignment="left" id="2YU-4i-TBW">
                             <items>
                                 <switch width="1" alignment="left" value="YES" title="Record data from phone" id="jfE-cI-0CH">
                                     <connections>
@@ -43,21 +40,23 @@
                                 </switch>
                             </items>
                         </group>
+                        <group width="1" alignment="left" layout="vertical" id="nsQ-on-N1H">
+                            <items>
+                                <button width="1" alignment="left" accessibilityLabel="Start" title="Start" id="LZc-wv-oe8">
+                                    <fontDescription key="font" style="UICTFontTextStyleBody"/>
+                                    <connections>
+                                        <action selector="startButtonPressed" destination="AgC-eL-Hgc" id="Gvd-mF-5Zi"/>
+                                    </connections>
+                                </button>
+                                <button width="1" alignment="left" title="Stop" id="9d8-pf-SIK">
+                                    <fontDescription key="font" style="UICTFontTextStyleBody"/>
+                                    <connections>
+                                        <action selector="stopButtonPressed" destination="AgC-eL-Hgc" id="drO-06-uiZ"/>
+                                    </connections>
+                                </button>
+                            </items>
+                        </group>
                     </items>
-                    <menu key="menu" id="rPq-6i-Jjn">
-                        <items>
-                            <menuItem title="Start" icon="accept" id="Vj3-qh-XhQ">
-                                <connections>
-                                    <action selector="startButtonPressed" destination="AgC-eL-Hgc" id="0rU-QA-8fU"/>
-                                </connections>
-                            </menuItem>
-                            <menuItem title="Stop" icon="decline" id="gkh-tw-253">
-                                <connections>
-                                    <action selector="stopButtonPressed" destination="AgC-eL-Hgc" id="UOf-1V-ZT7"/>
-                                </connections>
-                            </menuItem>
-                        </items>
-                    </menu>
                     <connections>
                         <outlet property="recIDLabel" destination="E52-i9-HjV" id="8kP-nE-s1c"/>
                         <outlet property="recNumberPicker" destination="lJN-9t-7cw" id="M15-bb-7cc"/>
@@ -66,7 +65,7 @@
                     </connections>
                 </controller>
             </objects>
-            <point key="canvasLocation" x="171" y="312"/>
+            <point key="canvasLocation" x="170.87179487179489" y="199.64102564102566"/>
         </scene>
         <!--Static Notification Interface Controller-->
         <scene sceneID="AEw-b0-oYE">
